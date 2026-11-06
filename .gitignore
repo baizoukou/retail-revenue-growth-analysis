@@ -36,16 +36,3 @@ Thumbs.db
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
-# Keep original datasets out of GitHub
-data/raw/
-
-# Python environments
-.venv/
-venv/
-
-# Jupyter temporary files
-.ipynb_checkpoints/
-
-# macOS files
-.DS_Store

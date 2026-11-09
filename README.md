@@ -98,6 +98,29 @@ The aim is to identify realistic opportunities to improve inventory planning, un
 - **Matplotlib:** Creating charts to explore and communicate trends.
 - **Jupyter Notebook:** Documenting the analysis, code, and findings.
 
+## Completed Analysis — Customer Segmentation (Stage 3)
+
+I completed an RFM analysis of 4,295 identified customers from the 2009–2010 Online Retail II dataset, covering £8.68 million in historical gross merchandise spending.
+
+The analysis identified seven customer segments based on purchasing recency, frequency and spending.
+
+**Key findings:**
+
+- **Champions:** 909 customers generated 64.88% of total spending.
+- **High-value Champions:** Just 46 customers accounted for 28.90% of spending.
+- **At Risk:** 459 customers contributed £880,617 historically, including 170 recently inactive, high-priority customers who previously spent £494,725.
+- **Hibernating:** 1,257 customers represented 29.27% of the customer base but contributed only 6.26% of spending.
+
+These findings highlight opportunities to retain valuable customers and test targeted reactivation strategies.
+
+The results describe historical purchasing behaviour and do not predict future revenue or customer churn.
+
+### Explore the Analysis
+
+- [Customer Segmentation Notebook](notebooks/03_customer_segmentation.ipynb)
+- [Customer Segmentation Report](reports/03_customer_segmentation_report.md)
+- [Customer Segmentation Chart](figures/customer_segment_spending_share.png)
+
 ## Initial Findings
 
 The first stage of the analysis has highlighted several areas worth investigating further.
@@ -138,12 +161,19 @@ I have completed an initial review of the data and explored some of the main sal
 
 The next steps are to complete the data quality checks, reconcile the full two-year dataset, investigate customer behaviour in more detail, and validate the business recommendations.
 
-## What's Next?
+## Project Status
 
-Once the exploratory analysis is complete, I plan to extend the project into **retail demand forecasting**.
+**In progress — Stage 3: Customer Segmentation completed**
 
-This will involve experimenting with Machine Learning models such as LightGBM and XGBoost to predict future product demand.
+I have completed the customer behaviour and RFM segmentation analysis for the 2009–2010 dataset.
 
-I also intend to explore MLflow for experiment tracking and model monitoring.
+The work includes:
 
-The longer-term goal is to build on the analytical work and understand how predictive models can support real business planning decisions.
+- RFM scoring and classification of 4,295 customers into seven segments.
+- Identification of high-value customers and reactivation priorities.
+- Validation of customer counts and spending totals.
+- A documented Jupyter notebook, business report and visualisation.
+
+The customer segmentation analysis is available on GitHub.
+
+The next priorities are completing the remaining data quality and revenue analysis, reconciling the full two-year dataset, and developing further business recommendations.

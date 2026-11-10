@@ -1,795 +1,625 @@
-{
- "cells": [
-  {
-   "cell_type": "markdown",
-   "id": "6f3b1522-aa01-4050-b499-4542b20bdcff",
-   "metadata": {},
-   "source": [
-    "\n",
-    "# Retail Revenue Growth Driver Analysis\n",
-    "\n",
-    "## Executive Summary\n",
-    "\n",
-    "## 1. Business Problem\n",
-    "\n",
-    "## 2. Dataset and Methodology\n",
-    "\n",
-    "## 3. Revenue Performance\n",
-    "\n",
-    "## 4. Growth Driver Decomposition\n",
-    "\n",
-    "## 5. Geographic Revenue Contributions\n",
-    "\n",
-    "## 6. Product Performance Analysis\n",
-    "\n",
-    "## 7. Business Recommendations\n",
-    "\n",
-    "## 8. Limitations\n",
-    "\n",
-    "## 9. Conclusion\n",
-    "\n",
-    "## 10. Reproducibility and References\n"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "c035f322-3eec-4b7b-8944-feb9c11a6ecf",
-   "metadata": {},
-   "source": [
-    "The analysis investigates the drivers of revenue growth for a UK-based online retailer using the UCI Online Retail II dataset.\n",
-    "\n",
-    "Between September and November 2010, net merchandise revenue increased by **65.92%, from £844,134.41 to £1,400,610.30**, representing an increase of **£556,475.89**.\n",
-    "\n",
-    "The main driver was increased order volume, which accounted for **83.03% of gross merchandise revenue growth**, while higher average order value contributed 16.97%. Increased cancellations partially offset these gains.\n",
-    "\n",
-    "Geographically, the United Kingdom contributed **91.16% of net revenue growth**, highlighting the concentration of growth in the retailer's domestic market.\n",
-    "\n",
-    "At product level, 2,203 products recorded revenue increases, while 990 experienced declines. Declining products offset 21.78% of positive product growth. Christmas decorations and cold-weather merchandise featured prominently among the highest-growing products, suggesting a possible seasonal influence.\n",
-    "\n",
-    "Based on these findings, the analysis recommends three priorities:\n",
-    "\n",
-    "1. **Improve seasonal inventory forecasting** to prepare for periods of increased demand.\n",
-    "2. **Review underperforming product lines** to support better assortment and inventory decisions.\n",
-    "3. **Evaluate international growth opportunities** through further market analysis and controlled testing.\n",
-    "\n",
-    "These recommendations are based on historical transaction patterns. Additional inventory, profitability and customer data would be required to validate their commercial impact."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "4b708ca0-8bce-49e9-b3a1-5507d1a7b868",
-   "metadata": {},
-   "source": [
-    "The retailer experienced substantial revenue growth between September and November 2010. However, an increase in revenue alone does not explain which business activities or customer purchasing patterns contributed to that performance.\n",
-    "\n",
-    "Understanding these drivers is important for making informed decisions about inventory planning, product assortment and future growth opportunities.\n",
-    "\n",
-    "**Primary business question:**\n",
-    "\n",
-    "What drove the retailer's revenue growth between September and November 2010, which markets and products contributed most, and what practical actions could improve future performance?\n",
-    "\n",
-    "**Analytical objectives:**\n",
-    "\n",
-    "1. Measure net merchandise revenue growth between September and November 2010.\n",
-    "2. Determine how changes in order volume and average order value contributed to gross revenue growth.\n",
-    "3. Quantify the impact of cancellations on net revenue.\n",
-    "4. Identify the countries and products contributing most to revenue growth.\n",
-    "5. Investigate declining products and their impact on overall performance.\n",
-    "6. Develop evidence-based business recommendations while acknowledging the dataset's limitations.\n",
-    "\n",
-    "**Business value:**\n",
-    "\n",
-    "The analysis aims to help decision-makers understand where revenue growth originated, identify potential risks and opportunities, and prioritise areas for further investigation.\n",
-    "\n",
-    "Rather than assuming that historical growth will continue, the findings provide a basis for testing practical business improvements."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "7e0bbd6c-1260-49ce-bf7d-cbf40e84302c",
-   "metadata": {},
-   "source": [
-    "### 2.1 Dataset Overview\n",
-    "\n",
-    "The analysis uses the **UCI Online Retail II dataset**, containing historical transactions from a UK-based online retailer.\n",
-    "\n",
-    "The investigation focuses on the `Year 2009-2010` worksheet, containing **525,461 transaction records**.\n",
-    "\n",
-    "The dataset includes invoice numbers, product codes, descriptions, quantities, transaction dates, unit prices, customer identifiers and countries.\n",
-    "\n",
-    "The primary comparison examines revenue performance between **September and November 2010**.\n",
-    "\n",
-    "### 2.2 Data Preparation and Transaction Classification\n",
-    "\n",
-    "Transaction records were assessed to distinguish merchandise sales from cancellations, adjustments, charges and other non-merchandise transactions.\n",
-    "\n",
-    "Gross merchandise sales were defined as transactions with positive quantities and prices, excluding cancellation invoices and identified non-merchandise stock codes.\n",
-    "\n",
-    "Cancellation transactions were identified using invoice numbers beginning with `C`. Their signed transaction values were included when calculating net merchandise revenue.\n",
-    "\n",
-    "The following stock codes were excluded from merchandise revenue:\n",
-    "\n",
-    "`M`, `POST`, `DOT`, `C2`, `D`, `BANK CHARGES`, `PADS`, `TEST001`\n",
-    "\n",
-    "These exclusions were applied consistently across the revenue, country and product analyses.\n",
-    "\n",
-    "### 2.3 Revenue Calculation\n",
-    "\n",
-    "Transaction values were calculated as:\n",
-    "\n",
-    "**Line Value = Quantity × Unit Price**\n",
-    "\n",
-    "The following revenue definitions were applied:\n",
-    "\n",
-    "- **Gross merchandise revenue:** Sum of eligible positive sales transactions.\n",
-    "- **Merchandise cancellations:** Signed value of eligible cancellation transactions.\n",
-    "- **Net merchandise revenue:** Gross merchandise revenue plus merchandise cancellations.\n",
-    "\n",
-    "After applying the exclusions, the dataset produced:\n",
-    "\n",
-    "| Metric | Value |\n",
-    "|---|---:|\n",
-    "| Gross merchandise revenue | £9,869,770.12 |\n",
-    "| Merchandise cancellations | −£312,508.79 |\n",
-    "| Net merchandise revenue | £9,557,261.33 |\n",
-    "\n",
-    "### 2.4 Growth Driver Analysis\n",
-    "\n",
-    "Revenue growth was examined through changes in order volume and average order value (AOV).\n",
-    "\n",
-    "Order volume represents the number of distinct invoices containing eligible gross merchandise sales.\n",
-    "\n",
-    "AOV was calculated by dividing gross merchandise revenue by the number of orders.\n",
-    "\n",
-    "A symmetric decomposition method was used to allocate gross revenue changes between order volume and AOV, without assigning the interaction effect entirely to either factor.\n",
-    "\n",
-    "Changes in merchandise cancellations were then incorporated to reconcile gross revenue growth with net revenue growth.\n",
-    "\n",
-    "### 2.5 Geographic and Product Analysis\n",
-    "\n",
-    "Net merchandise revenue was grouped by country and product stock code.\n",
-    "\n",
-    "For each group, the change between September and November 2010 was calculated to identify positive and negative contributions.\n",
-    "\n",
-    "Product contributions were also divided into growing, declining and unchanged groups.\n",
-    "\n",
-    "### 2.6 Data Validation\n",
-    "\n",
-    "Six reconciliation checks were performed, covering dataset revenue, monthly revenue, growth decomposition, country contributions, product contributions and positive versus negative product growth.\n",
-    "\n",
-    "All six checks passed.\n",
-    "\n",
-    "The checks establish internal consistency between the calculations, but do not independently validate every transaction classification.\n",
-    "\n",
-    "2.7 Analysis Scope\n",
-    "\n",
-    "The analysis uses historical transactional data and does not establish causal relationships.\n",
-    "\n",
-    "December 2010 was excluded from the primary comparison because it represents a partial month in the selected worksheet."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "3ed63b73-1aa3-4b84-8253-045350396a31",
-   "metadata": {},
-   "source": [
-    "### 3.1 Revenue Growth Overview\n",
-    "\n",
-    "Net merchandise revenue increased from **£844,134.41 in September 2010 to £1,400,610.30 in November 2010**, representing growth of **£556,475.89 (65.92%)**.\n",
-    "\n",
-    "Gross merchandise revenue increased by £570,525.51 over the same period. However, the value of merchandise cancellations also increased, reducing the overall net revenue gain.\n",
-    "\n",
-    "### 3.2 Monthly Revenue Comparison\n",
-    "\n",
-    "| Metric | September 2010 | October 2010 | November 2010 |\n",
-    "|---|---:|---:|---:|\n",
-    "| Gross merchandise revenue | £871,912.38 | £1,098,145.32 | £1,442,437.89 |\n",
-    "| Merchandise cancellations | −£27,777.97 | −£26,279.36 | −£41,827.59 |\n",
-    "| Net merchandise revenue | £844,134.41 | £1,071,865.96 | £1,400,610.30 |\n",
-    "\n",
-    "Net merchandise revenue increased in both October and November, indicating sustained month-on-month growth during the comparison period.\n",
-    "\n",
-    "\n",
-    "#### Monthly Revenue Trend\n",
-    "\n",
-    "![Monthly Net Merchandise Revenue](../figures/monthly_net_revenue.png)\n",
-    "\n",
-    "*Figure 1. Monthly net merchandise revenue from December 2009\n",
-    "to November 2010. December 2010 is excluded because it\n",
-    "represents a partial month.*\n",
-    "\n",
-    "\n",
-    "### 3.3 Business Interpretation\n",
-    "\n",
-    "The retailer experienced substantial revenue growth leading into the November trading period.\n",
-    "\n",
-    "However, revenue growth alone does not establish whether performance improved because of additional orders, higher spending per order or changes in product demand.\n",
-    "\n",
-    "These factors are examined in the following sections.\n",
-    "\n",
-    "### 3.4 Important Consideration\n",
-    "\n",
-    "The analysis covers a historical three-month period. The observed increase should not automatically be interpreted as a sustainable long-term growth trend.\n",
-    "\n",
-    "The December 2010 data is incomplete and is therefore unsuitable for a direct full-month comparison."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "87d9c930-e729-4cac-9011-485076001486",
-   "metadata": {},
-   "source": [
-    "### 4.1 Order Volume and Average Order Value\n",
-    "\n",
-    "Between September and November 2010, the number of merchandise orders increased from **1,789 to 2,720**, representing growth of **52.04%**.\n",
-    "\n",
-    "Average order value (AOV) also increased, from **£487.37 to £530.31**, representing growth of **8.81%**.\n",
-    "\n",
-    "These changes contributed to the increase in gross merchandise revenue.\n",
-    "\n",
-    "| Metric | September 2010 | November 2010 | Change |\n",
-    "|---|---:|---:|---:|\n",
-    "| Orders | 1,789 | 2,720 | +52.04% |\n",
-    "| AOV | £487.37 | £530.31 | +8.81% |\n",
-    "| Gross merchandise revenue | £871,912.38 | £1,442,437.89 | +£570,525.51 |\n",
-    "\n",
-    "### 4.2 Revenue Growth Decomposition\n",
-    "\n",
-    "A symmetric decomposition method was applied to separate the effects of changes in order volume and average order value.\n",
-    "\n",
-    "The results show:\n",
-    "\n",
-    "| Growth driver | Revenue contribution | Share of gross growth |\n",
-    "|---|---:|---:|\n",
-    "| Order volume | +£473,731.07 | 83.03% |\n",
-    "| Average order value | +£96,794.44 | 16.97% |\n",
-    "| **Total gross revenue growth** | **+£570,525.51** | **100.00%** |\n",
-    "\n",
-    "Order volume was the dominant contributor to gross merchandise revenue growth.\n",
-    "\n",
-    "\n",
-    "#### Revenue Growth Driver Contributions\n",
-    "\n",
-    "![Revenue Growth Driver Contributions](../figures/revenue_growth_drivers.png)\n",
-    "\n",
-    "*Figure 2. Contributions of order volume, average order\n",
-    "value and cancellations to the £556,475.89 increase\n",
-    "in net merchandise revenue between September and\n",
-    "November 2010.*\n",
-    "\n",
-    "\n",
-    "### 4.3 Cancellation Impact\n",
-    "\n",
-    "Merchandise cancellations increased in magnitude from £27,777.97 in September to £41,827.59 in November.\n",
-    "\n",
-    "This produced a negative revenue contribution of **£14,049.62**.\n",
-    "\n",
-    "After incorporating cancellations, the total net merchandise revenue increase was **£556,475.89**.\n",
-    "\n",
-    "The decomposition reconciled with the actual net revenue change, with a difference of £0.00.\n",
-    "\n",
-    "### 4.4 Business Interpretation\n",
-    "\n",
-    "The retailer's revenue growth was primarily associated with a higher number of orders rather than substantially higher spending per order.\n",
-    "\n",
-    "This suggests that understanding the factors associated with increased transaction volume should be a priority for further investigation.\n",
-    "\n",
-    "However, the dataset does not establish whether the additional orders resulted from new customers, repeat purchases, promotions or other external factors.\n",
-    "\n",
-    "Further customer-level and marketing analysis would be required to distinguish between these explanations."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "026c9954-f8d4-41d1-80a7-a4132b69d3eb",
-   "metadata": {},
-   "source": [
-    "### 4.1 Order Volume and Average Order Value\n",
-    "\n",
-    "Between September and November 2010, the number of merchandise orders increased from **1,789 to 2,720**, representing growth of **52.04%**.\n",
-    "\n",
-    "Average order value (AOV) also increased, from **£487.37 to £530.31**, representing growth of **8.81%**.\n",
-    "\n",
-    "These changes contributed to the increase in gross merchandise revenue.\n",
-    "\n",
-    "| Metric | September 2010 | November 2010 | Change |\n",
-    "|---|---:|---:|---:|\n",
-    "| Orders | 1,789 | 2,720 | +52.04% |\n",
-    "| AOV | £487.37 | £530.31 | +8.81% |\n",
-    "| Gross merchandise revenue | £871,912.38 | £1,442,437.89 | +£570,525.51 |\n",
-    "\n",
-    "### 4.2 Revenue Growth Decomposition\n",
-    "\n",
-    "A symmetric decomposition method was applied to separate the effects of changes in order volume and average order value.\n",
-    "\n",
-    "The results show:\n",
-    "\n",
-    "| Growth driver | Revenue contribution | Share of gross growth |\n",
-    "|---|---:|---:|\n",
-    "| Order volume | +£473,731.07 | 83.03% |\n",
-    "| Average order value | +£96,794.44 | 16.97% |\n",
-    "| **Total gross revenue growth** | **+£570,525.51** | **100.00%** |\n",
-    "\n",
-    "Order volume was the dominant contributor to gross merchandise revenue growth.\n",
-    "\n",
-    "### 4.3 Cancellation Impact\n",
-    "\n",
-    "Merchandise cancellations increased in magnitude from £27,777.97 in September to £41,827.59 in November.\n",
-    "\n",
-    "This produced a negative revenue contribution of **£14,049.62**.\n",
-    "\n",
-    "After incorporating cancellations, the total net merchandise revenue increase was **£556,475.89**.\n",
-    "\n",
-    "The decomposition reconciled with the actual net revenue change, with a difference of £0.00.\n",
-    "\n",
-    "### 4.4 Business Interpretation\n",
-    "\n",
-    "The retailer's revenue growth was primarily associated with a higher number of orders rather than substantially higher spending per order.\n",
-    "\n",
-    "This suggests that understanding the factors associated with increased transaction volume should be a priority for further investigation.\n",
-    "\n",
-    "However, the dataset does not establish whether the additional orders resulted from new customers, repeat purchases, promotions or other external factors.\n",
-    "\n",
-    "Further customer-level and marketing analysis would be required to distinguish between these explanations.\n",
-    "\n",
-    "\n",
-    "## 5. Geographic Revenue Contributions\n",
-    "\n",
-    "### 5.1 Overview\n",
-    "\n",
-    "Geographic analysis was conducted to identify which countries\n",
-    "contributed most to the increase in net merchandise revenue\n",
-    "between September and November 2010.\n",
-    "\n",
-    "The analysis shows that revenue growth was heavily concentrated\n",
-    "in the United Kingdom, although several international markets\n",
-    "also recorded positive contributions.\n",
-    "\n",
-    "### 5.2 United Kingdom vs International Markets\n",
-    "\n",
-    "| Market | Net Revenue Growth | Share of Total Growth |\n",
-    "|---|---:|---:|\n",
-    "| United Kingdom | £507,296.32 | 91.16% |\n",
-    "| International markets (combined) | £49,179.57 | 8.84% |\n",
-    "| **Total** | **£556,475.89** | **100.00%** |\n",
-    "\n",
-    "The United Kingdom accounted for approximately 91% of total\n",
-    "net revenue growth. This indicates substantial geographic\n",
-    "concentration in the retailer's domestic market.\n",
-    "\n",
-    "### 5.3 Geographic Revenue Growth\n",
-    "\n",
-    "![Top 10 Countries by Revenue Growth](../figures/country_revenue_growth.png)\n",
-    "\n",
-    "*Figure 3. Top 10 countries by absolute net merchandise revenue\n",
-    "growth between September and November 2010.*\n",
-    "\n",
-    "### 5.4 International Market Comparison\n",
-    "\n",
-    "Excluding the United Kingdom provides a clearer view of\n",
-    "international market performance.\n",
-    "\n",
-    "| Country | Net Revenue Growth |\n",
-    "|---|---:|\n",
-    "| France | £17,909.03 |\n",
-    "| Australia | £17,411.99 |\n",
-    "| Germany | £11,209.97 |\n",
-    "| Switzerland | £10,166.29 |\n",
-    "| Norway | £3,655.63 |\n",
-    "| Belgium | £3,523.22 |\n",
-    "| Denmark | £2,133.11 |\n",
-    "| Portugal | £1,920.54 |\n",
-    "| Lithuania | £1,525.39 |\n",
-    "| Austria | £1,294.18 |\n",
-    "\n",
-    "![International Revenue Growth](../figures/international_revenue_growth.png)\n",
-    "\n",
-    "*Figure 4. Top 10 international markets by absolute net\n",
-    "merchandise revenue growth, excluding the United Kingdom.*\n",
-    "\n",
-    "France and Australia recorded the largest positive international\n",
-    "contributions. However, these results represent absolute\n",
-    "revenue changes rather than market growth rates.\n",
-    "\n",
-    "The combined performance of all international markets also\n",
-    "includes countries that recorded declining revenue.\n",
-    "\n",
-    "### 5.5 Business Implications\n",
-    "\n",
-    "The findings suggest three potential priorities:\n",
-    "\n",
-    "1. **Protect domestic performance:** Maintain adequate inventory\n",
-    "   and operational capacity in the United Kingdom, where most\n",
-    "   of the observed revenue growth originated.\n",
-    "\n",
-    "2. **Investigate international opportunities:** Examine demand,\n",
-    "   customer retention, shipping costs and profitability in\n",
-    "   markets such as France, Australia, Germany and Switzerland.\n",
-    "\n",
-    "3. **Monitor geographic concentration:** Track revenue\n",
-    "   contributions across countries to understand the business's\n",
-    "   dependence on its domestic market.\n",
-    "\n",
-    "These findings describe observed revenue movements and do\n",
-    "not establish the underlying causes of growth \n"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "7267a53d-2123-41a1-a33e-07bd13dc752a",
-   "metadata": {},
-   "source": [
-    "### 6.1 Product Growth Overview\n",
-    "\n",
-    "Product-level analysis identified **3,254 stock codes** with recorded revenue activity in at least one of the comparison months.\n",
-    "\n",
-    "Of these:\n",
-    "\n",
-    "- 2,203 products (67.70%) recorded revenue increases.\n",
-    "- 990 products (30.42%) recorded revenue declines.\n",
-    "- 61 products (1.87%) recorded no change.\n",
-    "\n",
-    "Growing products contributed **£711,398.49** in additional revenue. Declining products offset **£154,922.60**, resulting in a net merchandise revenue increase of **£556,475.89**.\n",
-    "\n",
-    "### 6.2 Highest-Growing Products\n",
-    "\n",
-    "| Product | Revenue Increase |\n",
-    "|---|---:|\n",
-    "| Paper Chain Kit 50's Christmas | +£25,306.09 |\n",
-    "| Rotating Silver Angels T-Light Holder | +£20,627.31 |\n",
-    "| Paper Chain Kit Vintage Christmas | +£9,938.45 |\n",
-    "| Hand Warmer Owl Design | +£8,262.67 |\n",
-    "| Hot Water Bottle Babushka | +£8,130.11 |\n",
-    "| Small Popcorn Holder | +£8,017.61 |\n",
-    "| Hand Warmer Scotty Dog Design | +£7,730.92 |\n",
-    "| Assorted Colour Bird Ornament | +£7,242.72 |\n",
-    "| Hand Warmer Bird Design | +£6,594.54 |\n",
-    "| 3 Hearts Hanging Decoration Rustic | +£6,553.36 |\n",
-    "\n",
-    "The 10 highest-growing products contributed **£108,403.78**, equivalent to **19.48% of total net revenue growth**.\n",
-    "\n",
-    "Christmas decorations, home accessories and cold-weather products featured prominently among these products.\n",
-    "\n",
-    "This pattern is consistent with increased seasonal purchasing ahead of Christmas, although seasonality has not been independently established as the cause.\n",
-    "\n",
-    "### 6.3 Declining Products\n",
-    "\n",
-    "Revenue declined for 990 products, with combined decreases of **£154,922.60**.\n",
-    "\n",
-    "Several Vintage Union Jack products experienced substantial declines.\n",
-    "\n",
-    "| Product | Revenue Decline |\n",
-    "|---|---:|\n",
-    "| Vintage Union Jack Bunting | −£4,992.94 |\n",
-    "| Vintage Union Jack Cushion Cover | −£4,405.15 |\n",
-    "| Pharmacie First Aid Tin | −£3,655.42 |\n",
-    "| Vintage Union Jack Doorstop | −£3,600.34 |\n",
-    "| Open Closed Metal Sign | −£3,369.60 |\n",
-    "\n",
-    "Declining products offset **21.78% of the positive revenue growth** generated by growing products.\n",
-    "\n",
-    "### 6.4 Business Interpretation\n",
-    "\n",
-    "Revenue growth was distributed across a substantial proportion of the product catalogue rather than being concentrated exclusively among the 10 highest-growing products.\n",
-    "\n",
-    "However, the performance of individual products varied considerably.\n",
-    "\n",
-    "The results suggest that the retailer could benefit from reviewing product demand patterns, particularly when preparing inventory for seasonal trading periods.\n",
-    "\n",
-    "Products experiencing declining revenue should be investigated before decisions are made about replenishment, promotions or discontinuation.\n",
-    "\n",
-    "### 6.5 Limitations\n",
-    "\n",
-    "Product revenue changes do not necessarily reflect changes in underlying customer demand.\n",
-    "\n",
-    "The dataset does not establish whether declining sales resulted from stockouts, discontinued products, price changes or shifting customer preferences.\n",
-    "\n",
-    "Product profitability also cannot be determined without procurement costs, operating expenses and margin information.\n",
-    "\n",
-    "Consequently, revenue performance should be used as a starting point for product-level investigation rather than as the sole basis for assortment decisions.\n",
-    "\n",
-    "\n",
-    "### 6.6 Product Growth and Decline Visualisations\n",
-    "\n",
-    "#### Top 10 Growing Products\n",
-    "\n",
-    "![Top 10 Growing Products](../figures/top_10_growing_products.png)\n",
-    "\n",
-    "*Figure 5. The 10 products contributing the largest positive\n",
-    "changes in net merchandise revenue between September\n",
-    "and November 2010.*\n",
-    "\n",
-    "#### Top 10 Declining Products\n",
-    "\n",
-    "![Top 10 Declining Products](../figures/top_10_declining_products.png)\n",
-    "\n",
-    "*Figure 6. The 10 products recording the largest negative\n",
-    "changes in net merchandise revenue over the same period.*\n",
-    "\n",
-    "\n",
-    "### 6.7 Product Growth Reconciliation\n",
-    "\n",
-    "![Product Growth Reconciliation](../figures/product_growth_reconciliation.png)\n",
-    "\n",
-    "*Figure 7. Reconciliation of positive and negative product-level\n",
-    "revenue changes to total net merchandise revenue growth\n",
-    "between September and November 2010.*\n",
-    "\n",
-    "The product-level reconciliation confirms that revenue growth\n",
-    "was driven by gains across 2,203 products, partially offset by\n",
-    "declines across 990 products.\n",
-    "\n",
-    "| Component | Revenue Contribution |\n",
-    "|---|---:|\n",
-    "| Growing products | +£711,398.49 |\n",
-    "| Declining products | −£154,922.60 |\n",
-    "| **Net revenue growth** | **+£556,475.89** |\n",
-    "\n",
-    "The decline in underperforming products offset approximately\n",
-    "21.78% of the positive revenue contribution from growing\n",
-    "products.\n",
-    "\n",
-    "This reconciliation confirms that the product-level analysis\n",
-    "matches the overall net revenue growth calculated in the\n",
-    "revenue performance analysis.\n",
-    "\n",
-    "\n"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "791a7ebb-d919-44fa-8b72-0bac9fbac6ac",
-   "metadata": {},
-   "source": [
-    "### 7.1 Improve Seasonal Inventory Planning\n",
-    "\n",
-    "**Evidence:** Net merchandise revenue increased by 65.92% between September and November 2010, while order volume increased by 52.04%. Christmas decorations and cold-weather products featured prominently among the highest-growing products.\n",
-    "\n",
-    "**Recommendation:** Use historical sales patterns to improve demand forecasting ahead of autumn and Christmas trading periods. Review product-level sales trends and prioritise inventory planning for merchandise with recurring seasonal demand.\n",
-    "\n",
-    "**Expected benefit:** Better product availability during periods of increased demand, with potentially fewer stockouts and less excess inventory.\n",
-    "\n",
-    "**Performance indicators:**\n",
-    "- Forecast accuracy\n",
-    "- Stockout rate\n",
-    "- Inventory turnover\n",
-    "- Product-level sell-through rate\n",
-    "\n",
-    "**Limitation:** Inventory levels and stockout information are unavailable in the dataset. The recommendation therefore requires further validation.\n",
-    "\n",
-    "### 7.2 Review Underperforming Product Lines\n",
-    "\n",
-    "**Evidence:** Revenue declined for 990 products, reducing the gains from growing products by £154,922.60. These declines offset 21.78% of positive product growth.\n",
-    "\n",
-    "**Recommendation:** Introduce regular product performance reviews to identify declining merchandise. Investigate stock availability, pricing, demand patterns and product profitability before making decisions about replenishment, promotions or discontinuation.\n",
-    "\n",
-    "**Expected benefit:** More effective inventory allocation, improved product assortment decisions and reduced exposure to slow-moving merchandise.\n",
-    "\n",
-    "**Performance indicators:**\n",
-    "- Product-level revenue growth\n",
-    "- Sell-through rate\n",
-    "- Inventory turnover\n",
-    "- Gross profit margin\n",
-    "\n",
-    "**Limitation:** Declining revenue does not necessarily indicate poor profitability or declining customer demand. Additional cost and inventory information is required.\n",
-    "\n",
-    "### 7.3 Evaluate International Growth Opportunities\n",
-    "\n",
-    "**Evidence:** The United Kingdom contributed £507,296.32, representing 91.16% of net merchandise revenue growth. France, Australia, Germany and Switzerland also recorded positive revenue contributions.\n",
-    "\n",
-    "**Recommendation:** Investigate international markets showing positive sales momentum. Compare revenue trends, customer purchasing behaviour, fulfilment costs and contribution margins before selecting markets for small-scale expansion tests.\n",
-    "\n",
-    "**Expected benefit:** Identification of commercially viable growth opportunities and potential diversification of revenue sources.\n",
-    "\n",
-    "**Performance indicators:**\n",
-    "- Country-level revenue growth\n",
-    "- Average order value by country\n",
-    "- Repeat purchase rate\n",
-    "- Customer acquisition cost\n",
-    "- Contribution margin by market\n",
-    "\n",
-    "Limitation: The dataset does not include shipping costs, acquisition costs or market-level profitability. International expansion cannot be justified on revenue growth alone.\n",
-    "\n",
-    "7.4 Recommended Implementation Approach\n",
-    "\n",
-    "The retailer should prioritise further validation before committing significant resources.\n",
-    "\n",
-    "A practical sequence would be:\n",
-    "\n",
-    "Review historical seasonal demand and inventory availability.\n",
-    "\n",
-    "Investigate the products with the largest revenue declines.\n",
-    "\n",
-    "Assess international market profitability and operational feasibility.\n",
-    "\n",
-    "Test selected improvements on a limited scale.\n",
-    "\n",
-    "Monitor performance against predefined indicators before expanding successful initiatives.\n",
-    "\n",
-    "These recommendations are intended to support evidence-based decisions rather than guarantee future revenue growth.\n"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "ba2de2c7-ce29-40ec-9f7e-9c0f11672de6",
-   "metadata": {},
-   "source": [
-    "### 8.1 Historical Data and Analysis Period\n",
-    "\n",
-    "The analysis uses historical transaction data from the UCI Online Retail II dataset, focusing on September to November 2010.\n",
-    "\n",
-    "The findings describe performance during this period and should not be assumed to represent current market conditions or long-term growth trends.\n",
-    "\n",
-    "December 2010 was excluded from the primary comparison because it is an incomplete month in the selected worksheet.\n",
-    "\n",
-    "### 8.2 Transaction Classification\n",
-    "\n",
-    "Merchandise revenue was calculated after excluding identified non-merchandise transactions, including postage charges, discounts, manual adjustments and test records.\n",
-    "\n",
-    "Although reconciliation checks confirmed that the calculations were internally consistent, some transaction classifications may require further investigation.\n",
-    "\n",
-    "Different classification rules could produce different revenue totals.\n",
-    "\n",
-    "### 8.3 Missing Inventory and Profitability Data\n",
-    "\n",
-    "The dataset does not contain inventory levels, procurement costs, fulfilment expenses or product profit margins.\n",
-    "\n",
-    "Consequently, the analysis cannot establish whether declining product revenue resulted from stock shortages, lower customer demand or deliberate product discontinuation.\n",
-    "\n",
-    "It also cannot determine which products or geographic markets were most profitable.\n",
-    "\n",
-    "### 8.4 Customer Behaviour and Marketing\n",
-    "\n",
-    "Order volume was the largest contributor to gross merchandise revenue growth.\n",
-    "\n",
-    "However, the analysis does not establish whether additional orders resulted from new customers, repeat purchases, marketing campaigns, promotions or other factors.\n",
-    "\n",
-    "Further customer-level and marketing data would be required to investigate these explanations.\n",
-    "\n",
-    "### 8.5 Seasonality and Causation\n",
-    "\n",
-    "Christmas decorations and cold-weather merchandise featured prominently among the highest-growing products.\n",
-    "\n",
-    "Although this pattern is consistent with seasonal purchasing, the analysis does not establish that seasonality caused the observed revenue increase.\n",
-    "\n",
-    "Comparisons across multiple years and additional contextual information would be needed to evaluate recurring seasonal effects.\n",
-    "\n",
-    "### 8.6 Geographic Analysis\n",
-    "\n",
-    "Country-level revenue growth does not necessarily indicate market attractiveness or commercial profitability.\n",
-    "\n",
-    "The dataset lacks information about shipping costs, customer acquisition expenses, competitive conditions and market size.\n",
-    "\n",
-    "International expansion recommendations therefore require further commercial evaluation.\n",
-    "\n",
-    "### 8.7 Interpretation of Revenue Growth\n",
-    "\n",
-    "The decomposition quantifies the contributions of order volume, average order value and cancellations to recorded revenue growth.\n",
-    "\n",
-    "It is an accounting-based decomposition rather than a causal model.\n",
-    "\n",
-    "The findings should therefore support further investigation and controlled business testing rather than be interpreted as proof that specific interventions will increase future revenue."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "2f3af367-5f2d-4ca3-be5b-ee7aa966c7fc",
-   "metadata": {},
-   "source": [
-    "## 9. Conclusion\n",
-    "\n",
-    "The analysis found that net merchandise revenue increased by **£556,475.89 (65.92%)** between September and November 2010.\n",
-    "\n",
-    "The main contributor was increased order volume, accounting for **83.03% of gross merchandise revenue growth**, compared with 16.97% from higher average order value. Increased cancellations partially offset these gains.\n",
-    "\n",
-    "Geographically, the United Kingdom generated **91.16% of net revenue growth**, while international markets made smaller contributions.\n",
-    "\n",
-    "Product-level analysis showed that growth extended across much of the catalogue, with **2,203 products recording revenue increases**. However, declines across 990 products offset 21.78% of positive product growth. Christmas decorations and cold-weather merchandise were prominent among the highest-growing products.\n",
-    "\n",
-    "Together, these findings suggest three priorities: improving seasonal inventory planning, reviewing underperforming products and evaluating international growth opportunities.\n",
-    "\n",
-    "The analysis demonstrates how transaction-level data can be used to identify revenue growth drivers and support business decision-making. However, additional inventory, profitability and customer data would be needed to validate the recommendations and assess their potential commercial impact."
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "e40d3fd9-2ee0-4004-8eaa-a716f15995b1",
-   "metadata": {},
-   "source": [
-    "### 10.1 Data Source\n",
-    "\n",
-    "**Dataset:** Online Retail II  \n",
-    "**Provider:** UCI Machine Learning Repository  \n",
-    "**Source:** https://archive.ics.uci.edu/dataset/502/online+retail+ii\n",
-    "\n",
-    "The dataset contains historical transactions from a UK-based online retailer between December 2009 and December 2011.\n",
-    "\n",
-    "This analysis uses the `Year 2009-2010` worksheet.\n",
-    "\n",
-    "The original dataset is not included in the GitHub repository and must be downloaded separately.\n",
-    "\n",
-    "### 10.2 Tools and Technologies\n",
-    "\n",
-    "The analysis was conducted using:\n",
-    "\n",
-    "- **Python:** Data preparation and analytical calculations.\n",
-    "- **pandas:** Data cleaning, aggregation and revenue analysis.\n",
-    "- **NumPy:** Numerical validation and reconciliation.\n",
-    "- **JupyterLab:** Interactive analysis and documentation.\n",
-    "- **Git and GitHub:** Version control and project documentation.\n",
-    "\n",
-    "### 10.3 Reproducing the Analysis\n",
-    "\n",
-    "To reproduce the results:\n",
-    "\n",
-    "1. Clone the GitHub repository.\n",
-    "2. Create and activate a Python virtual environment.\n",
-    "3. Install the dependencies listed in `requirements.txt`.\n",
-    "4. Download the Online Retail II dataset from the UCI Machine Learning Repository.\n",
-    "5. Save the Excel workbook as `data/raw/online_retail_II.xlsx`.\n",
-    "6. Open `notebooks/04_revenue_growth_drivers.ipynb` in JupyterLab.\n",
-    "7. Run the notebook cells sequentially to reproduce the calculations.\n",
-    "\n",
-    "The notebook documents the merchandise revenue definition, transaction exclusions, growth decomposition, country analysis and product analysis.\n",
-    "\n",
-    "### 10.4 Validation\n",
-    "\n",
-    "Six reconciliation checks were performed to confirm internal consistency across the calculations.\n",
-    "\n",
-    "All six checks passed.\n",
-    "\n",
-    "The checks cover:\n",
-    "\n",
-    "- Dataset revenue reconciliation.\n",
-    "- Monthly revenue reconciliation.\n",
-    "- Growth driver decomposition.\n",
-    "- Country-level revenue contributions.\n",
-    "- Product-level revenue contributions.\n",
-    "- Positive and negative product growth reconciliation.\n",
-    "\n",
-    "These checks confirm mathematical consistency but do not independently validate every underlying transaction classification.\n",
-    "\n",
-    "### 10.5 Project Repository\n",
-    "\n",
-    "**GitHub:** https://github.com/baizoukou/retail-revenue-growth-analysis\n",
-    "\n",
-    "**Main analytical notebook:** `notebooks/04_revenue_growth_drivers.ipynb`\n",
-    "\n",
-    "**Growth driver report:** `reports/03_growth_driver_report.md`\n",
-    "\n",
-    "### 10.6 Reference\n",
-    "\n",
-    "Chen, D. (2019). *Online Retail II* [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "e617aa0b-9a03-4dd4-a2aa-73bbab71cdf0",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.13.15"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# Retail Revenue Growth Driver Analysis
+
+## Executive Summary
+
+The analysis investigates the drivers of revenue growth for a UK-based online retailer using the UCI Online Retail II dataset.
+
+Between September and November 2010, net merchandise revenue increased by **65.92%, from £844,134.41 to £1,400,610.30**, representing an increase of **£556,475.89**.
+
+The main driver was increased order volume, which accounted for **83.03% of gross merchandise revenue growth**, while higher average order value contributed 16.97%. Increased cancellations partially offset these gains.
+
+Geographically, the United Kingdom contributed **91.16% of net revenue growth**, highlighting the concentration of growth in the retailer's domestic market.
+
+At product level, 2,203 products recorded revenue increases, while 990 experienced declines. Declining products offset 21.78% of positive product growth. Christmas decorations and cold-weather merchandise featured prominently among the highest-growing products, suggesting a possible seasonal influence.
+
+Based on these findings, the analysis recommends three priorities:
+
+1. **Improve seasonal inventory forecasting** to prepare for periods of increased demand.
+2. **Review underperforming product lines** to support better assortment and inventory decisions.
+3. **Evaluate international growth opportunities** through further market analysis and controlled testing.
+
+These recommendations are based on historical transaction patterns. Additional inventory, profitability and customer data would be required to validate their commercial impact.
+
+## 1. Business Problem
+
+The retailer experienced substantial revenue growth between September and November 2010. However, an increase in revenue alone does not explain which business activities or customer purchasing patterns contributed to that performance.
+
+Understanding these drivers is important for making informed decisions about inventory planning, product assortment and future growth opportunities.
+
+**Primary business question:**
+
+What drove the retailer's revenue growth between September and November 2010, which markets and products contributed most, and what practical actions could improve future performance?
+
+**Analytical objectives:**
+
+1. Measure net merchandise revenue growth between September and November 2010.
+2. Determine how changes in order volume and average order value contributed to gross revenue growth.
+3. Quantify the impact of cancellations on net revenue.
+4. Identify the countries and products contributing most to revenue growth.
+5. Investigate declining products and their impact on overall performance.
+6. Develop evidence-based business recommendations while acknowledging the dataset's limitations.
+
+**Business value:**
+
+The analysis aims to help decision-makers understand where revenue growth originated, identify potential risks and opportunities, and prioritise areas for further investigation.
+
+Rather than assuming that historical growth will continue, the findings provide a basis for testing practical business improvements.
+
+## 2. Dataset and Methodology
+
+### 2.1 Dataset Overview
+
+The analysis uses the **UCI Online Retail II dataset**, containing historical transactions from a UK-based online retailer.
+
+The investigation focuses on the `Year 2009-2010` worksheet, containing **525,461 transaction records**.
+
+The dataset includes invoice numbers, product codes, descriptions, quantities, transaction dates, unit prices, customer identifiers and countries.
+
+The primary comparison examines revenue performance between **September and November 2010**.
+
+### 2.2 Data Preparation and Transaction Classification
+
+Transaction records were assessed to distinguish merchandise sales from cancellations, adjustments, charges and other non-merchandise transactions.
+
+Gross merchandise sales were defined as transactions with positive quantities and prices, excluding cancellation invoices and identified non-merchandise stock codes.
+
+Cancellation transactions were identified using invoice numbers beginning with `C`. Their signed transaction values were included when calculating net merchandise revenue.
+
+The following stock codes were excluded from merchandise revenue:
+
+`M`, `POST`, `DOT`, `C2`, `D`, `BANK CHARGES`, `PADS`, `TEST001`
+
+These exclusions were applied consistently across the revenue, country and product analyses.
+
+### 2.3 Revenue Calculation
+
+Transaction values were calculated as:
+
+**Line Value = Quantity × Unit Price**
+
+The following revenue definitions were applied:
+
+- **Gross merchandise revenue:** Sum of eligible positive sales transactions.
+- **Merchandise cancellations:** Signed value of eligible cancellation transactions.
+- **Net merchandise revenue:** Gross merchandise revenue plus merchandise cancellations.
+
+After applying the exclusions, the dataset produced:
+
+| Metric | Value |
+|---|---:|
+| Gross merchandise revenue | £9,869,770.12 |
+| Merchandise cancellations | −£312,508.79 |
+| Net merchandise revenue | £9,557,261.33 |
+
+### 2.4 Growth Driver Analysis
+
+Revenue growth was examined through changes in order volume and average order value (AOV).
+
+Order volume represents the number of distinct invoices containing eligible gross merchandise sales.
+
+AOV was calculated by dividing gross merchandise revenue by the number of orders.
+
+A symmetric decomposition method was used to allocate gross revenue changes between order volume and AOV, without assigning the interaction effect entirely to either factor.
+
+Changes in merchandise cancellations were then incorporated to reconcile gross revenue growth with net revenue growth.
+
+### 2.5 Geographic and Product Analysis
+
+Net merchandise revenue was grouped by country and product stock code.
+
+For each group, the change between September and November 2010 was calculated to identify positive and negative contributions.
+
+Product contributions were also divided into growing, declining and unchanged groups.
+
+### 2.6 Data Validation
+
+Six reconciliation checks were performed, covering dataset revenue, monthly revenue, growth decomposition, country contributions, product contributions and positive versus negative product growth.
+
+All six checks passed.
+
+The checks establish internal consistency between the calculations, but do not independently validate every transaction classification.
+
+### 2.7 Analysis Scope
+
+The analysis uses historical transactional data and does not establish causal relationships.
+
+December 2010 was excluded from the primary comparison because it represents a partial month in the selected worksheet.
+
+## 3. Revenue Performance
+
+### 3.1 Revenue Growth Overview
+
+Net merchandise revenue increased from **£844,134.41 in September 2010 to £1,400,610.30 in November 2010**, representing growth of **£556,475.89 (65.92%)**.
+
+Gross merchandise revenue increased by £570,525.51 over the same period. However, the value of merchandise cancellations also increased, reducing the overall net revenue gain.
+
+### 3.2 Monthly Revenue Comparison
+
+| Metric | September 2010 | October 2010 | November 2010 |
+|---|---:|---:|---:|
+| Gross merchandise revenue | £871,912.38 | £1,098,145.32 | £1,442,437.89 |
+| Merchandise cancellations | −£27,777.97 | −£26,279.36 | −£41,827.59 |
+| Net merchandise revenue | £844,134.41 | £1,071,865.96 | £1,400,610.30 |
+
+Net merchandise revenue increased in both October and November, indicating sustained month-on-month growth during the comparison period.
+
+
+#### Monthly Revenue Trend
+
+![Monthly Net Merchandise Revenue](../figures/monthly_net_revenue.png)
+
+*Figure 1. Monthly net merchandise revenue from December 2009
+to November 2010. December 2010 is excluded because it
+represents a partial month.*
+
+
+### 3.3 Business Interpretation
+
+The retailer experienced substantial revenue growth leading into the November trading period.
+
+However, revenue growth alone does not establish whether performance improved because of additional orders, higher spending per order or changes in product demand.
+
+These factors are examined in the following sections.
+
+### 3.4 Important Consideration
+
+The analysis covers a historical three-month period. The observed increase should not automatically be interpreted as a sustainable long-term growth trend.
+
+The December 2010 data is incomplete and is therefore unsuitable for a direct full-month comparison.
+
+## 4. Growth Driver Decomposition
+
+### 4.1 Order Volume and Average Order Value
+
+Between September and November 2010, the number of merchandise orders increased from **1,789 to 2,720**, representing growth of **52.04%**.
+
+Average order value (AOV) also increased, from **£487.37 to £530.31**, representing growth of **8.81%**.
+
+These changes contributed to the increase in gross merchandise revenue.
+
+| Metric | September 2010 | November 2010 | Change |
+|---|---:|---:|---:|
+| Orders | 1,789 | 2,720 | +52.04% |
+| AOV | £487.37 | £530.31 | +8.81% |
+| Gross merchandise revenue | £871,912.38 | £1,442,437.89 | +£570,525.51 |
+
+### 4.2 Revenue Growth Decomposition
+
+A symmetric decomposition method was applied to separate the effects of changes in order volume and average order value.
+
+The results show:
+
+| Growth driver | Revenue contribution | Share of gross growth |
+|---|---:|---:|
+| Order volume | +£473,731.07 | 83.03% |
+| Average order value | +£96,794.44 | 16.97% |
+| **Total gross revenue growth** | **+£570,525.51** | **100.00%** |
+
+Order volume was the dominant contributor to gross merchandise revenue growth.
+
+#### Revenue Growth Driver Contributions
+
+![Revenue Growth Driver Contributions](../figures/revenue_growth_drivers.png)
+
+*Figure 2. Contributions of order volume, average order value and cancellations to the £556,475.89 increase in net merchandise revenue between September and November 2010.*
+
+### 4.3 Cancellation Impact
+
+Merchandise cancellations increased in magnitude from £27,777.97 in September to £41,827.59 in November.
+
+This produced a negative revenue contribution of **£14,049.62**.
+
+After incorporating cancellations, the total net merchandise revenue increase was **£556,475.89**.
+
+The decomposition reconciled with the actual net revenue change, with a difference of £0.00.
+
+### 4.4 Business Interpretation
+
+The retailer's revenue growth was primarily associated with a higher number of orders rather than substantially higher spending per order.
+
+This suggests that understanding the factors associated with increased transaction volume should be a priority for further investigation.
+
+However, the dataset does not establish whether the additional orders resulted from new customers, repeat purchases, promotions or other external factors.
+
+Further customer-level and marketing analysis would be required to distinguish between these explanations.
+
+
+## 5. Geographic Revenue Contributions
+
+### 5.1 Overview
+
+Geographic analysis was conducted to identify which countries
+contributed most to the increase in net merchandise revenue
+between September and November 2010.
+
+The analysis shows that revenue growth was heavily concentrated
+in the United Kingdom, although several international markets
+also recorded positive contributions.
+
+### 5.2 United Kingdom vs International Markets
+
+| Market | Net Revenue Growth | Share of Total Growth |
+|---|---:|---:|
+| United Kingdom | £507,296.32 | 91.16% |
+| International markets (combined) | £49,179.57 | 8.84% |
+| **Total** | **£556,475.89** | **100.00%** |
+
+The United Kingdom accounted for approximately 91% of total
+net revenue growth. This indicates substantial geographic
+concentration in the retailer's domestic market.
+
+### 5.3 Geographic Revenue Growth
+
+![Top 10 Countries by Revenue Growth](../figures/country_revenue_growth.png)
+
+*Figure 3. Top 10 countries by absolute net merchandise revenue
+growth between September and November 2010.*
+
+### 5.4 International Market Comparison
+
+Excluding the United Kingdom provides a clearer view of
+international market performance.
+
+| Country | Net Revenue Growth |
+|---|---:|
+| France | £17,909.03 |
+| Australia | £17,411.99 |
+| Germany | £11,209.97 |
+| Switzerland | £10,166.29 |
+| Norway | £3,655.63 |
+| Belgium | £3,523.22 |
+| Denmark | £2,133.11 |
+| Portugal | £1,920.54 |
+| Lithuania | £1,525.39 |
+| Austria | £1,294.18 |
+
+![International Revenue Growth](../figures/international_revenue_growth.png)
+
+*Figure 4. Top 10 international markets by absolute net
+merchandise revenue growth, excluding the United Kingdom.*
+
+France and Australia recorded the largest positive international
+contributions. However, these results represent absolute
+revenue changes rather than market growth rates.
+
+The combined performance of all international markets also
+includes countries that recorded declining revenue.
+
+### 5.5 Business Implications
+
+The findings suggest three potential priorities:
+
+1. **Protect domestic performance:** Maintain adequate inventory
+   and operational capacity in the United Kingdom, where most
+   of the observed revenue growth originated.
+
+2. **Investigate international opportunities:** Examine demand,
+   customer retention, shipping costs and profitability in
+   markets such as France, Australia, Germany and Switzerland.
+
+3. **Monitor geographic concentration:** Track revenue
+   contributions across countries to understand the business's
+   dependence on its domestic market.
+
+These findings describe observed revenue movements and do
+not establish the underlying causes of growth.
+
+## 6. Product Performance Analysis
+
+### 6.1 Product Growth Overview
+
+Product-level analysis identified **3,254 stock codes** with recorded revenue activity in at least one of the comparison months.
+
+Of these:
+
+- 2,203 products (67.70%) recorded revenue increases.
+- 990 products (30.42%) recorded revenue declines.
+- 61 products (1.87%) recorded no change.
+
+Growing products contributed **£711,398.49** in additional revenue. Declining products offset **£154,922.60**, resulting in a net merchandise revenue increase of **£556,475.89**.
+
+### 6.2 Highest-Growing Products
+
+| Product | Revenue Increase |
+|---|---:|
+| Paper Chain Kit 50's Christmas | +£25,306.09 |
+| Rotating Silver Angels T-Light Holder | +£20,627.31 |
+| Paper Chain Kit Vintage Christmas | +£9,938.45 |
+| Hand Warmer Owl Design | +£8,262.67 |
+| Hot Water Bottle Babushka | +£8,130.11 |
+| Small Popcorn Holder | +£8,017.61 |
+| Hand Warmer Scotty Dog Design | +£7,730.92 |
+| Assorted Colour Bird Ornament | +£7,242.72 |
+| Hand Warmer Bird Design | +£6,594.54 |
+| 3 Hearts Hanging Decoration Rustic | +£6,553.36 |
+
+The 10 highest-growing products contributed **£108,403.78**, equivalent to **19.48% of total net revenue growth**.
+
+Christmas decorations, home accessories and cold-weather products featured prominently among these products.
+
+This pattern is consistent with increased seasonal purchasing ahead of Christmas, although seasonality has not been independently established as the cause.
+
+### 6.3 Declining Products
+
+Revenue declined for 990 products, with combined decreases of **£154,922.60**.
+
+Several Vintage Union Jack products experienced substantial declines.
+
+| Product | Revenue Decline |
+|---|---:|
+| Vintage Union Jack Bunting | −£4,992.94 |
+| Vintage Union Jack Cushion Cover | −£4,405.15 |
+| Pharmacie First Aid Tin | −£3,655.42 |
+| Vintage Union Jack Doorstop | −£3,600.34 |
+| Open Closed Metal Sign | −£3,369.60 |
+
+Declining products offset **21.78% of the positive revenue growth** generated by growing products.
+
+### 6.4 Business Interpretation
+
+Revenue growth was distributed across a substantial proportion of the product catalogue rather than being concentrated exclusively among the 10 highest-growing products.
+
+However, the performance of individual products varied considerably.
+
+The results suggest that the retailer could benefit from reviewing product demand patterns, particularly when preparing inventory for seasonal trading periods.
+
+Products experiencing declining revenue should be investigated before decisions are made about replenishment, promotions or discontinuation.
+
+### 6.5 Limitations
+
+Product revenue changes do not necessarily reflect changes in underlying customer demand.
+
+The dataset does not establish whether declining sales resulted from stockouts, discontinued products, price changes or shifting customer preferences.
+
+Product profitability also cannot be determined without procurement costs, operating expenses and margin information.
+
+Consequently, revenue performance should be used as a starting point for product-level investigation rather than as the sole basis for assortment decisions.
+
+
+### 6.6 Product Growth and Decline Visualisations
+
+#### Top 10 Growing Products
+
+![Top 10 Growing Products](../figures/top_10_growing_products.png)
+
+*Figure 5. The 10 products contributing the largest positive
+changes in net merchandise revenue between September
+and November 2010.*
+
+#### Top 10 Declining Products
+
+![Top 10 Declining Products](../figures/top_10_declining_products.png)
+
+*Figure 6. The 10 products recording the largest negative
+changes in net merchandise revenue over the same period.*
+
+
+### 6.7 Product Growth Reconciliation
+
+![Product Growth Reconciliation](../figures/product_growth_reconciliation.png)
+
+*Figure 7. Reconciliation of positive and negative product-level
+revenue changes to total net merchandise revenue growth
+between September and November 2010.*
+
+The product-level reconciliation confirms that revenue growth
+was driven by gains across 2,203 products, partially offset by
+declines across 990 products.
+
+| Component | Revenue Contribution |
+|---|---:|
+| Growing products | +£711,398.49 |
+| Declining products | −£154,922.60 |
+| **Net revenue growth** | **+£556,475.89** |
+
+The decline in underperforming products offset approximately
+21.78% of the positive revenue contribution from growing
+products.
+
+This reconciliation confirms that the product-level analysis
+matches the overall net revenue growth calculated in the
+revenue performance analysis.
+
+## 7. Business Recommendations
+
+### 7.1 Improve Seasonal Inventory Planning
+
+**Evidence:** Net merchandise revenue increased by 65.92% between September and November 2010, while order volume increased by 52.04%. Christmas decorations and cold-weather products featured prominently among the highest-growing products.
+
+**Recommendation:** Use historical sales patterns to improve demand forecasting ahead of autumn and Christmas trading periods. Review product-level sales trends and prioritise inventory planning for merchandise with recurring seasonal demand.
+
+**Expected benefit:** Better product availability during periods of increased demand, with potentially fewer stockouts and less excess inventory.
+
+**Performance indicators:**
+- Forecast accuracy
+- Stockout rate
+- Inventory turnover
+- Product-level sell-through rate
+
+**Limitation:** Inventory levels and stockout information are unavailable in the dataset. The recommendation therefore requires further validation.
+
+### 7.2 Review Underperforming Product Lines
+
+**Evidence:** Revenue declined for 990 products, reducing the gains from growing products by £154,922.60. These declines offset 21.78% of positive product growth.
+
+**Recommendation:** Introduce regular product performance reviews to identify declining merchandise. Investigate stock availability, pricing, demand patterns and product profitability before making decisions about replenishment, promotions or discontinuation.
+
+**Expected benefit:** More effective inventory allocation, improved product assortment decisions and reduced exposure to slow-moving merchandise.
+
+**Performance indicators:**
+- Product-level revenue growth
+- Sell-through rate
+- Inventory turnover
+- Gross profit margin
+
+**Limitation:** Declining revenue does not necessarily indicate poor profitability or declining customer demand. Additional cost and inventory information is required.
+
+### 7.3 Evaluate International Growth Opportunities
+
+**Evidence:** The United Kingdom contributed £507,296.32, representing 91.16% of net merchandise revenue growth. France, Australia, Germany and Switzerland also recorded positive revenue contributions.
+
+**Recommendation:** Investigate international markets showing positive sales momentum. Compare revenue trends, customer purchasing behaviour, fulfilment costs and contribution margins before selecting markets for small-scale expansion tests.
+
+**Expected benefit:** Identification of commercially viable growth opportunities and potential diversification of revenue sources.
+
+**Performance indicators:**
+- Country-level revenue growth
+- Average order value by country
+- Repeat purchase rate
+- Customer acquisition cost
+- Contribution margin by market
+
+**Limitation:** The dataset does not include shipping costs, acquisition costs or market-level profitability. International expansion cannot be justified on revenue growth alone.
+
+### 7.4 Recommended Implementation Approach
+
+The retailer should prioritise further validation before committing significant resources.
+
+A practical sequence would be:
+
+1. Review historical seasonal demand and inventory availability.
+2. Investigate the products with the largest revenue declines.
+3. Assess international market profitability and operational feasibility.
+4. Test selected improvements on a limited scale.
+5. Monitor performance against predefined indicators before expanding successful initiatives.
+
+These recommendations are intended to support evidence-based decisions rather than guarantee future revenue growth.
+
+## 8. Limitations
+
+### 8.1 Historical Data and Analysis Period
+
+The analysis uses historical transaction data from the UCI Online Retail II dataset, focusing on September to November 2010.
+
+The findings describe performance during this period and should not be assumed to represent current market conditions or long-term growth trends.
+
+December 2010 was excluded from the primary comparison because it is an incomplete month in the selected worksheet.
+
+### 8.2 Transaction Classification
+
+Merchandise revenue was calculated after excluding identified non-merchandise transactions, including postage charges, discounts, manual adjustments and test records.
+
+Although reconciliation checks confirmed that the calculations were internally consistent, some transaction classifications may require further investigation.
+
+Different classification rules could produce different revenue totals.
+
+### 8.3 Missing Inventory and Profitability Data
+
+The dataset does not contain inventory levels, procurement costs, fulfilment expenses or product profit margins.
+
+Consequently, the analysis cannot establish whether declining product revenue resulted from stock shortages, lower customer demand or deliberate product discontinuation.
+
+It also cannot determine which products or geographic markets were most profitable.
+
+### 8.4 Customer Behaviour and Marketing
+
+Order volume was the largest contributor to gross merchandise revenue growth.
+
+However, the analysis does not establish whether additional orders resulted from new customers, repeat purchases, marketing campaigns, promotions or other factors.
+
+Further customer-level and marketing data would be required to investigate these explanations.
+
+### 8.5 Seasonality and Causation
+
+Christmas decorations and cold-weather merchandise featured prominently among the highest-growing products.
+
+Although this pattern is consistent with seasonal purchasing, the analysis does not establish that seasonality caused the observed revenue increase.
+
+Comparisons across multiple years and additional contextual information would be needed to evaluate recurring seasonal effects.
+
+### 8.6 Geographic Analysis
+
+Country-level revenue growth does not necessarily indicate market attractiveness or commercial profitability.
+
+The dataset lacks information about shipping costs, customer acquisition expenses, competitive conditions and market size.
+
+International expansion recommendations therefore require further commercial evaluation.
+
+### 8.7 Interpretation of Revenue Growth
+
+The decomposition quantifies the contributions of order volume, average order value and cancellations to recorded revenue growth.
+
+It is an accounting-based decomposition rather than a causal model.
+
+The findings should therefore support further investigation and controlled business testing rather than be interpreted as proof that specific interventions will increase future revenue.
+
+## 9. Conclusion
+
+The analysis found that net merchandise revenue increased by **£556,475.89 (65.92%)** between September and November 2010.
+
+The main contributor was increased order volume, accounting for **83.03% of gross merchandise revenue growth**, compared with 16.97% from higher average order value. Increased cancellations partially offset these gains.
+
+Geographically, the United Kingdom generated **91.16% of net revenue growth**, while international markets made smaller contributions.
+
+Product-level analysis showed that growth extended across much of the catalogue, with **2,203 products recording revenue increases**. However, declines across 990 products offset 21.78% of positive product growth. Christmas decorations and cold-weather merchandise were prominent among the highest-growing products.
+
+Together, these findings suggest three priorities: improving seasonal inventory planning, reviewing underperforming products and evaluating international growth opportunities.
+
+The analysis demonstrates how transaction-level data can be used to identify revenue growth drivers and support business decision-making. However, additional inventory, profitability and customer data would be needed to validate the recommendations and assess their potential commercial impact.
+
+## 10. Reproducibility and References
+
+### 10.1 Data Source
+
+**Dataset:** Online Retail II  
+**Provider:** UCI Machine Learning Repository  
+**Source:** https://archive.ics.uci.edu/dataset/502/online+retail+ii
+
+The dataset contains historical transactions from a UK-based online retailer between December 2009 and December 2011.
+
+This analysis uses the `Year 2009-2010` worksheet.
+
+The original dataset is not included in the GitHub repository and must be downloaded separately.
+
+### 10.2 Tools and Technologies
+
+The analysis was conducted using:
+
+- **Python:** Data preparation and analytical calculations.
+- **pandas:** Data cleaning, aggregation and revenue analysis.
+- **NumPy:** Numerical validation and reconciliation.
+- **JupyterLab:** Interactive analysis and documentation.
+- **Git and GitHub:** Version control and project documentation.
+
+### 10.3 Reproducing the Analysis
+
+To reproduce the results:
+
+1. Clone the GitHub repository.
+2. Create and activate a Python virtual environment.
+3. Install the dependencies listed in `requirements.txt`.
+4. Download the Online Retail II dataset from the UCI Machine Learning Repository.
+5. Save the Excel workbook as `data/raw/online_retail_II.xlsx`.
+6. Open `notebooks/04_revenue_growth_drivers.ipynb` in JupyterLab.
+7. Run the notebook cells sequentially to reproduce the calculations.
+
+The notebook documents the merchandise revenue definition, transaction exclusions, growth decomposition, country analysis and product analysis.
+
+### 10.4 Validation
+
+Six reconciliation checks were performed to confirm internal consistency across the calculations.
+
+All six checks passed.
+
+The checks cover:
+
+- Dataset revenue reconciliation.
+- Monthly revenue reconciliation.
+- Growth driver decomposition.
+- Country-level revenue contributions.
+- Product-level revenue contributions.
+- Positive and negative product growth reconciliation.
+
+These checks confirm mathematical consistency but do not independently validate every underlying transaction classification.
+
+### 10.5 Project Repository
+
+**GitHub:** https://github.com/baizoukou/retail-revenue-growth-analysis
+
+**Main analytical notebook:** `notebooks/04_revenue_growth_drivers.ipynb`
+
+**Growth driver report:** `reports/03_growth_driver_report.md`
+
+### 10.6 Reference
+
+Chen, D. (2019). *Online Retail II* [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D

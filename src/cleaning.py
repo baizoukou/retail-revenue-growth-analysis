@@ -78,3 +78,61 @@ def classify_revenue_transactions(df: pd.DataFrame) -> pd.DataFrame:
     ] = "Test transaction"
 
     return result
+
+
+def refine_revenue_classifications(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply the final revenue classification refinements.
+
+    Reproduces the special-stock-code rules from notebook
+    01_data_quality.ipynb, cells 110 and 115.
+
+    Expects a DataFrame already classified by
+    classify_revenue_transactions().
+    Returns a new DataFrame without modifying the input.
+    """
+    result = df.copy()
+
+    stock = (
+        result["StockCode"]
+        .astype("string")
+        .str.upper()
+        .str.strip()
+    )
+
+    # Cell 110: initial special-code refinements
+    special_categories = {
+        "POST": "Postage / delivery",
+        "D": "Discount",
+        "S": "Samples / Review",
+        "ADJUST": "Accounting adjustment",
+        "AMAZONFEE": "Marketplace fee",
+    }
+
+    for code, category in special_categories.items():
+        result.loc[
+            stock.eq(code).fillna(False),
+            "RevenueCategory"
+        ] = category
+
+    # Cell 115: final refinements
+    result.loc[
+        stock.isin(["POST", "DOT", "C2"]).fillna(False),
+        "RevenueCategory"
+    ] = "Postage / delivery"
+
+    result.loc[
+        stock.eq("BANK CHARGES").fillna(False),
+        "RevenueCategory"
+    ] = "Bank charges"
+
+    result.loc[
+        stock.isin(["ADJUST", "ADJUST2"]).fillna(False),
+        "RevenueCategory"
+    ] = "Accounting adjustment"
+
+    result.loc[
+        stock.str.startswith("GIFT_0001_", na=False),
+        "RevenueCategory"
+    ] = "Gift voucher / Review"
+
+    return result
